@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "description": "Show session stats every 50 tool uses",
+        "matcher": {
+          "tools": ["*"],
+          "modulo": 50
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx ccstats"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "description": "Save session statistics when Claude Code stops",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx ccstats -o yaml -s ~/.claude/session-stats/$(date +%Y%m%d-%H%M%S).yaml"
+          }
+        ]
+      }
+    ]
+  }
+}
