@@ -60,7 +60,14 @@ function parseJSONL(content: string): SessionEntry[] {
     .filter(Boolean) as SessionEntry[];
 }
 
-function getActiveSessionFile(): string | null {
+interface SessionFileResult {
+  path: string | null;
+  searchedPath: string;
+  directoryExists: boolean;
+  fileCount: number;
+}
+
+function getActiveSessionFile(): SessionFileResult {
   const claudeDir = join(homedir(), '.claude');
   const projectsDir = join(claudeDir, 'projects');
   
@@ -84,11 +91,28 @@ function getActiveSessionFile(): string | null {
       .sort((a: any, b: any) => b.mtime.getTime() - a.mtime.getTime());
     
     if (files.length > 0) {
-      return files[0].path;
+      return { 
+        path: files[0].path, 
+        searchedPath: projectPath,
+        directoryExists: true,
+        fileCount: files.length
+      };
     }
+    
+    return { 
+      path: null, 
+      searchedPath: projectPath,
+      directoryExists: true,
+      fileCount: 0
+    };
   }
   
-  return null;
+  return { 
+    path: null, 
+    searchedPath: projectPath,
+    directoryExists: false,
+    fileCount: 0
+  };
 }
 
 function calculateSessionStats(entries: SessionEntry[]): SessionStats | null {
@@ -285,7 +309,7 @@ function displayStats(stats: SessionStats): void {
 program
   .name('ccstats')
   .description('Claude Code session statistics tool')
-  .version('0.1.1')
+  .version('0.1.2')
   .option('-f, --file <path>', 'specify a session file to analyze')
   .option('-o, --output <format>', 'output format (json, yaml)', 'console')
   .option('-s, --save <path>', 'save output to file')
@@ -295,14 +319,29 @@ const options = program.opts();
 
 async function main() {
   let sessionFile: string | null = null;
+  let searchedPath: string | null = null;
   
   if (options.file) {
     sessionFile = options.file;
   } else {
-    sessionFile = getActiveSessionFile();
+    const result = getActiveSessionFile();
+    sessionFile = result.path;
+    searchedPath = result.searchedPath;
+    
     if (!sessionFile) {
       console.error(chalk.red('❌ Could not find active Claude Code session file'));
-      console.error(chalk.yellow('💡 Try specifying a file with -f option'));
+      console.error(chalk.gray(`   Searched in: ${searchedPath}`));
+      console.error(chalk.gray(`   Current directory: ${process.cwd()}`));
+      
+      if (!result.directoryExists) {
+        console.error(chalk.gray(`   Status: Project directory does not exist`));
+        console.error(chalk.gray(`   This might be your first Claude Code session in this directory`));
+      } else if (result.fileCount === 0) {
+        console.error(chalk.gray(`   Status: Directory exists but no session files found`));
+      }
+      
+      console.error(chalk.yellow('\n💡 Try specifying a file with -f option'));
+      console.error(chalk.yellow('💡 Or check if Claude Code is running in this directory'));
       process.exit(1);
     }
   }
