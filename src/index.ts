@@ -285,7 +285,7 @@ function displayStats(stats: SessionStats): void {
 program
   .name('ccstats')
   .description('Claude Code session statistics tool')
-  .version('1.0.0')
+  .version('0.1.0')
   .option('-f, --file <path>', 'specify a session file to analyze')
   .option('-o, --output <format>', 'output format (json, yaml)', 'console')
   .option('-s, --save <path>', 'save output to file')
