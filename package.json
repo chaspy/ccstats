@@ -1,6 +1,6 @@
 {
   "name": "ccstats",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Claude Code session statistics tool",
   "main": "dist/index.js",
   "bin": {

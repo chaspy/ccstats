@@ -75,8 +75,8 @@ function getActiveSessionFile(): SessionFileResult {
   const cwd = process.cwd();
   
   // Find the project directory that matches the current working directory
-  // Replace all slashes and dots with hyphens
-  const projectDirName = cwd.replace(/[\/\.]/g, '-');
+  // Replace all slashes, dots, and underscores with hyphens
+  const projectDirName = cwd.replace(/[\/\._]/g, '-');
   const projectPath = join(projectsDir, projectDirName);
   
   if (existsSync(projectPath)) {
@@ -309,10 +309,11 @@ function displayStats(stats: SessionStats): void {
 program
   .name('ccstats')
   .description('Claude Code session statistics tool')
-  .version('0.1.2')
+  .version('0.1.3')
   .option('-f, --file <path>', 'specify a session file to analyze')
   .option('-o, --output <format>', 'output format (json, yaml)', 'console')
   .option('-s, --save <path>', 'save output to file')
+  .option('-d, --debug', 'show debug information')
   .parse();
 
 const options = program.opts();
@@ -329,19 +330,17 @@ async function main() {
     searchedPath = result.searchedPath;
     
     if (!sessionFile) {
-      console.error(chalk.red('❌ Could not find active Claude Code session file'));
-      console.error(chalk.gray(`   Searched in: ${searchedPath}`));
-      console.error(chalk.gray(`   Current directory: ${process.cwd()}`));
-      
       if (!result.directoryExists) {
-        console.error(chalk.gray(`   Status: Project directory does not exist`));
-        console.error(chalk.gray(`   This might be your first Claude Code session in this directory`));
-      } else if (result.fileCount === 0) {
-        console.error(chalk.gray(`   Status: Directory exists but no session files found`));
+        console.error(chalk.red('❌ No Claude Code session found yet'));
+        console.error(chalk.gray('   Session files are created after first tool use'));
+      } else {
+        console.error(chalk.red('❌ Could not find session file'));
       }
       
-      console.error(chalk.yellow('\n💡 Try specifying a file with -f option'));
-      console.error(chalk.yellow('💡 Or check if Claude Code is running in this directory'));
+      if (options.debug) {
+        console.error(chalk.gray(`\nDebug: searched in ${searchedPath}`));
+      }
+      
       process.exit(1);
     }
   }

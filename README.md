@@ -62,6 +62,8 @@ ccstats reads Claude Code session files stored in `~/.claude/projects/` and anal
 
 For the current directory, it automatically finds the most recent session file. You can also specify a session file directly using the `-f` option.
 
+**Note**: Claude Code creates session files after the first tool use (running commands, editing files, etc.). If you just started a new session, use some Claude Code features first before running ccstats.
+
 ## Output Formats
 
 ### Console (default)
