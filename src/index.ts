@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { program } from 'commander';
 import chalk from 'chalk';
 import yaml from 'js-yaml';
+
+// Get package.json version
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const packageJson = JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'));
+const version = packageJson.version;
 
 interface SessionEntry {
   type: string;
@@ -309,7 +316,7 @@ function displayStats(stats: SessionStats): void {
 program
   .name('ccstats')
   .description('Claude Code session statistics tool')
-  .version('0.1.3')
+  .version(version)
   .option('-f, --file <path>', 'specify a session file to analyze')
   .option('-o, --output <format>', 'output format (json, yaml)', 'console')
   .option('-s, --save <path>', 'save output to file')
@@ -350,7 +357,13 @@ async function main() {
     process.exit(1);
   }
   
-  console.log(chalk.gray(`Reading session file: ${sessionFile}`));
+  // Only show debug message in console mode or when explicitly debugging
+  if (options.output === 'console') {
+    console.log(chalk.gray(`Reading session file: ${sessionFile}`));
+  } else if (options.debug) {
+    // For non-console output with debug flag, use stderr to avoid polluting output
+    console.error(chalk.gray(`[DEBUG] Reading session file: ${sessionFile}`));
+  }
   
   try {
     const content = readFileSync(sessionFile, 'utf-8');
@@ -386,8 +399,10 @@ async function main() {
     // Save to file if requested
     if (options.save && output) {
       writeFileSync(options.save, output);
+      // Show save confirmation (not to stdout to avoid mixing with piped output)
       console.log(chalk.green(`✅ Statistics saved to ${options.save}`));
     } else if (output) {
+      // Direct output for json/yaml
       console.log(output);
     }
   } catch (error) {
