@@ -49,14 +49,14 @@ jobs:
           # Optional: Trigger when specific user is assigned to an issue
           # assignee_trigger: "claude-bot"
           
-          # Allow Claude to run Go-specific commands
-          allowed_tools: "Bash(go test ./...),Bash(go fmt ./...),Bash(go vet ./...),Bash(go build ./...),Bash(go mod tidy),Bash(golangci-lint run)"
+          # Allow Claude to run TypeScript/Node.js-specific commands
+          allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run dev),Bash(npm test),Bash(npm publish),Bash(npx tsc --noEmit),Bash(npx tsx src/index.ts)"
           
           # Add custom instructions for Claude to customize its behavior for your project
           custom_instructions: |
-            このプロジェクトは Go 言語で書かれた ccstats ツールです。
-            Go のベストプラクティスに従ってコードを書いてください。
-            エラーハンドリングは適切に行い、必要に応じてテストを追加してください。
+            このプロジェクトは TypeScript で書かれた Claude Code セッション統計ツール (ccstats) です。
+            TypeScript のベストプラクティスに従い、型安全性を重視してコードを書いてください。
+            エラーハンドリングは適切に行い、Node.js の非同期処理パターンに注意してください。
             レビューやコメントは日本語で提供してください。
           
           # Optional: Custom environment variables for Claude

@@ -45,10 +45,11 @@ jobs:
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
             このプルリクエストを以下の観点でレビューしてください：
-            - Go言語のベストプラクティスへの準拠
+            - TypeScript のベストプラクティスへの準拠
+            - 型安全性と型定義の適切性
             - コードの品質と可読性
             - エラーハンドリングの適切性
-            - 潜在的なバグや問題点
+            - Node.js の非同期処理パターン
             - パフォーマンスへの影響
             - テストカバレッジと品質
             
@@ -71,8 +72,8 @@ jobs:
           #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
           
-          # Add specific tools for Go project testing and linting
-          allowed_tools: "Bash(go test ./...),Bash(go fmt ./...),Bash(go vet ./...),Bash(golangci-lint run)"
+          # Add specific tools for TypeScript/Node.js project testing and linting
+          allowed_tools: "Bash(npm run build),Bash(npm run dev),Bash(npm test),Bash(npx tsc --noEmit)"
           
           # Optional: Skip review for certain conditions
           # if: |
