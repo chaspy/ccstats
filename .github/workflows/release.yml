@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+  workflow_dispatch:
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should-publish: ${{ steps.check.outputs.should_publish }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Check if version changed
+        id: check
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Check if this version tag already exists
+          if git ls-remote --tags origin | grep -q "refs/tags/v${CURRENT_VERSION}$"; then
+            echo "Version v${CURRENT_VERSION} already published"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version detected: v${CURRENT_VERSION}"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          fi
+
+  publish:
+    needs: check-version
+    if: needs.check-version.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Run tests
+        run: |
+          # Test that the CLI works
+          npm link
+          ccstats --version
+          ccstats --help
+      
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.check-version.outputs.version }}
+          release_name: Release v${{ needs.check-version.outputs.version }}
+          body: |
+            ## 🚀 Released version ${{ needs.check-version.outputs.version }}
+            
+            This release was automatically published to npm.
+            
+            ### Installation
+            ```bash
+            npm install -g ccstats@${{ needs.check-version.outputs.version }}
+            ```
+            
+            ### Usage
+            ```bash
+            npx ccstats@${{ needs.check-version.outputs.version }}
+            ```
+            
+            See [npm package](https://www.npmjs.com/package/ccstats/v/${{ needs.check-version.outputs.version }}) for more details.
+          draft: false
+          prerelease: false

@@ -146,6 +146,32 @@ Add to your Claude Code settings.json:
 3. **Quick Stats**: Use custom commands like `/stats` for on-demand statistics
 4. **Performance Analysis**: Export to YAML/JSON for further analysis
 
+## Development
+
+### Release Process
+
+This repository uses GitHub Actions for automated releases. When the version in `package.json` is updated and pushed to the main branch, the release workflow automatically:
+
+1. Checks if the version is new
+2. Runs tests
+3. Publishes to npm
+4. Creates a GitHub release with the version tag
+
+#### Manual Release
+
+To manually release a new version:
+
+1. Update version in `package.json`
+2. Commit and push to main
+3. The GitHub Action will automatically publish to npm
+
+#### Setup for Maintainers
+
+To enable automatic releases, add an npm token to GitHub Secrets:
+
+1. Generate an npm token at https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+2. Add it as `NPM_TOKEN` in repository Settings → Secrets and variables → Actions
+
 ## License
 
 MIT
