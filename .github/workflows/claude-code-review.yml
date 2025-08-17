@@ -12,11 +12,13 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Skip if @claude is mentioned in PR (handled by claude.yml)
+    # Or if PR has skip-review label or WIP in title
+    if: |
+      !contains(github.event.pull_request.body, '@claude') &&
+      !contains(github.event.pull_request.title, '[skip-review]') &&
+      !contains(github.event.pull_request.title, '[WIP]') &&
+      !contains(github.event.pull_request.labels.*.name, 'skip-review')
     
     runs-on: ubuntu-latest
     permissions:
@@ -42,17 +44,18 @@ jobs:
 
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            このプルリクエストを以下の観点でレビューしてください：
+            - Go言語のベストプラクティスへの準拠
+            - コードの品質と可読性
+            - エラーハンドリングの適切性
+            - 潜在的なバグや問題点
+            - パフォーマンスへの影響
+            - テストカバレッジと品質
             
-            Be constructive and helpful in your feedback.
+            建設的なフィードバックを日本語で提供してください。
 
-          # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
-          # use_sticky_comment: true
+          # Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
+          use_sticky_comment: true
           
           # Optional: Customize review based on file types
           # direct_prompt: |
@@ -68,8 +71,8 @@ jobs:
           #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
           #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
           
-          # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
+          # Add specific tools for Go project testing and linting
+          allowed_tools: "Bash(go test ./...),Bash(go fmt ./...),Bash(go vet ./...),Bash(golangci-lint run)"
           
           # Optional: Skip review for certain conditions
           # if: |
