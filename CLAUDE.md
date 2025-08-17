@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルはClaude Codeがこのリポジトリで作業する際のガイドラインです。
 
 ## Repository Overview
 
@@ -51,17 +52,64 @@ The tool categorizes Claude Code tools:
 - Web operations: WebSearch, WebFetch
 - Other specialized tools
 
-## Release Process
+## Release Process / リリースプロセス
 
-**Important**: Follow this exact flow for npm releases
+**CRITICAL**: Never publish to npm without user approval. Follow this exact flow:
+**重要**: npm publishする前に必ず以下のフローに従ってください。
+
+### English
 
 1. **Branch Work**: Create feature/fix branches for changes
-2. **Testing**: Test all output formats and edge cases
-3. **Pull Request**: Create PR with `gh pr create`
-4. **User Approval**: Wait for PR review and merge
-5. **Release**: Only publish from main branch after merge
+   - `git checkout -b feature/xxx` or `git checkout -b fix/xxx`
 
-For emergency unpublish: `npm unpublish ccstats@version`
+2. **Testing**: Test all output formats and edge cases
+   - Test redirections with `-o yaml > output.yaml`
+   - Test both direct execution and npx
+
+3. **Pull Request**: Create PR with `gh pr create`
+   - Include test results in PR description
+   - Reference related issues
+
+4. **User Approval**: Wait for PR review and merge
+   - **NEVER run npm publish before approval**
+   - User must explicitly approve the PR
+
+5. **Release**: Only publish from main branch after merge
+   - Switch to main branch
+   - Pull latest changes
+   - Run `npm publish`
+
+### 日本語
+
+1. **ブランチで作業**
+   - 修正や機能追加は別ブランチで行う
+   - `git checkout -b feature/xxx` または `git checkout -b fix/xxx`
+
+2. **テスト実施**
+   - 修正後は必ずテストを実行
+   - リダイレクトを含む各種出力形式をテスト
+
+3. **コミット作成**
+   - 変更内容を明確にコミット
+   - コミットメッセージは変更内容を簡潔に説明
+
+4. **Pull Request作成**
+   - `gh pr create` でPRを作成
+   - 変更内容とテスト結果を記載
+
+5. **ユーザー承認待ち**
+   - ユーザーがPRをレビューし承認するまで待つ
+   - **承認前にnpm publishしない**
+
+6. **マージ後リリース**
+   - PRがマージされた後にmainブランチで作業
+   - `npm publish` でリリース
+
+### Emergency / 緊急時の対応
+
+For emergency unpublish / もし誤ってリリースしてしまった場合:
+- `npm unpublish package@version` で即座に取り消し
+- 正しいフローで再度進める
 
 ## Session File Locations
 
