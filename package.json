@@ -1,6 +1,6 @@
 {
   "name": "ccstats",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Claude Code session statistics tool",
   "main": "dist/index.js",
   "bin": {
@@ -21,7 +21,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.11",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   },
