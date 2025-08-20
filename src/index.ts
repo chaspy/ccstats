@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { program } from 'commander';
 import chalk from 'chalk';
 import yaml from 'js-yaml';
+import { execSync } from 'child_process';
 
 // Get package.json version
 const __filename = fileURLToPath(import.meta.url);
@@ -74,16 +75,42 @@ interface SessionFileResult {
   fileCount: number;
 }
 
-function getActiveSessionFile(): SessionFileResult {
+function getGitRoot(): string | null {
+  try {
+    const gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+    return gitRoot;
+  } catch (error) {
+    return null;
+  }
+}
+
+function getActiveSessionFile(useGitRoot: boolean = true): SessionFileResult {
   const claudeDir = join(homedir(), '.claude');
   const projectsDir = join(claudeDir, 'projects');
   
-  // Get current working directory
-  const cwd = process.cwd();
+  // Get the directory to use for searching
+  let searchDir = process.cwd();
+  if (useGitRoot) {
+    const gitRoot = getGitRoot();
+    if (gitRoot) {
+      searchDir = gitRoot;
+      if (options.debug) {
+        console.log(chalk.gray(`Using git root: ${gitRoot}`));
+      }
+    } else {
+      if (options.debug) {
+        console.log(chalk.gray('Not a git repository, using current directory'));
+      }
+    }
+  } else {
+    if (options.debug) {
+      console.log(chalk.gray('Git root detection disabled, using current directory'));
+    }
+  }
   
-  // Find the project directory that matches the current working directory
+  // Find the project directory that matches the search directory
   // Replace all slashes, dots, and underscores with hyphens
-  const projectDirName = cwd.replace(/[\/\._]/g, '-');
+  const projectDirName = searchDir.replace(/[\/\._]/g, '-');
   const projectPath = join(projectsDir, projectDirName);
   
   if (existsSync(projectPath)) {
@@ -320,6 +347,7 @@ program
   .option('-f, --file <path>', 'specify a session file to analyze')
   .option('-o, --output <format>', 'output format (json, yaml)', 'console')
   .option('-s, --save <path>', 'save output to file')
+  .option('--no-git-root', 'disable automatic git repository root detection')
   .option('-d, --debug', 'show debug information')
   .parse();
 
@@ -332,7 +360,7 @@ async function main() {
   if (options.file) {
     sessionFile = options.file;
   } else {
-    const result = getActiveSessionFile();
+    const result = getActiveSessionFile(options.gitRoot);
     sessionFile = result.path;
     searchedPath = result.searchedPath;
     
