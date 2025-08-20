@@ -75,35 +75,40 @@ interface SessionFileResult {
   fileCount: number;
 }
 
-function getGitRoot(): string | null {
+function getGitRoot(debugMode: boolean = false): string | null {
   try {
-    const gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+    const gitRoot = execSync('git rev-parse --show-toplevel', { 
+      encoding: 'utf-8' as const 
+    }).trim();
     return gitRoot;
   } catch (error) {
+    if (debugMode) {
+      console.log(chalk.gray(`Git command failed: ${error}`));
+    }
     return null;
   }
 }
 
-function getActiveSessionFile(useGitRoot: boolean = true): SessionFileResult {
+function getActiveSessionFile(useGitRoot: boolean = true, debugMode: boolean = false): SessionFileResult {
   const claudeDir = join(homedir(), '.claude');
   const projectsDir = join(claudeDir, 'projects');
   
   // Get the directory to use for searching
   let searchDir = process.cwd();
   if (useGitRoot) {
-    const gitRoot = getGitRoot();
+    const gitRoot = getGitRoot(debugMode);
     if (gitRoot) {
       searchDir = gitRoot;
-      if (options.debug) {
+      if (debugMode) {
         console.log(chalk.gray(`Using git root: ${gitRoot}`));
       }
     } else {
-      if (options.debug) {
+      if (debugMode) {
         console.log(chalk.gray('Not a git repository, using current directory'));
       }
     }
   } else {
-    if (options.debug) {
+    if (debugMode) {
       console.log(chalk.gray('Git root detection disabled, using current directory'));
     }
   }
@@ -360,7 +365,7 @@ async function main() {
   if (options.file) {
     sessionFile = options.file;
   } else {
-    const result = getActiveSessionFile(options.gitRoot);
+    const result = getActiveSessionFile(options.gitRoot !== false, options.debug);
     sessionFile = result.path;
     searchedPath = result.searchedPath;
     
